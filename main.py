@@ -4,9 +4,8 @@ from matplotlib import pyplot as plt
 
 N = 10 ** 2
 start_property = [0.6, 0.4]
-mtrx = np.array([[0.9, 0.1], [0.2, 0.8]])
+mtrx = np.array([[0.6, 0.4], [0.2, 0.8]])
 v = [-1, 1]
-m = 3
 
 
 def generate_next_value_chain(x):
@@ -16,11 +15,11 @@ def generate_next_value_chain(x):
         return np.random.choice(v, p=mtrx[1])
 
 
-def generate_chain(N):
+def generate_chain(N_):
     chain_ = []
     next_value = np.random.choice(v, p=start_property)
     chain_.append(next_value)
-    for _ in np.arange(0, N - 1):
+    for _ in np.arange(0, N_ - 1):
         next_value = generate_next_value_chain(next_value)
         chain_.append(next_value)
     return chain_
@@ -28,9 +27,9 @@ def generate_chain(N):
 
 def signal_transformation(signal):
     if signal == v[0]:
-        return -1
-    else:
         return 1
+    else:
+        return -1
 
 
 def FM_phasing_manipulation(signal, q_, gauss_):
@@ -47,14 +46,13 @@ def dB_at_times(x):
 
 def solver(x):
     if x > (np.log(start_property[1] / start_property[0])):
-        return 1
+        return v[0]
     else:
-        return -1
+        return v[1]
 
 
 def property_chain(result_chain_):
     k = len(result_chain_)
-    print(result_chain_)
     for i in range(0, len(result_chain_)):
         chain_for_plot.append(solver(result_chain_[i]))
         if solver(result_chain_[i]) == chain[i]:
@@ -83,6 +81,7 @@ for q in q_times:
     for i in range(0, len(chain)):
         result_chain.append(CHM_phasing_manipulation(chain[i], q, gauss[i]))
     #chain_for_plot = result_chain
+
     chm_modul_result.append(property_chain(result_chain))
 print(chm_modul_result)
 
