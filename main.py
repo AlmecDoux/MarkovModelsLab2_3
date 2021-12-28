@@ -2,15 +2,12 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 
-N = 100
-start_property = [0.9, 0.1]
+N = 10 ** 2
+start_property = [0.6, 0.4]
 mtrx = np.array([[0.9, 0.1], [0.2, 0.8]])
 v = [-1, 1]
 m = 3
-q = 3
 
-
-# Генерация цепи Маркова и получение матрицы вероятности переходов
 
 def generate_next_value_chain(x):
     if x == v[0]:
@@ -29,29 +26,93 @@ def generate_chain(N):
     return chain_
 
 
-def generate_psp(psp_array):
-    for _ in range(0, 20):
-        psp_array.append((psp_array[len(psp_array) - 1] + psp_array[len(psp_array) - 3]) % 2)
-    for i in range(0, len(psp_array)):
-        if psp_array[i] == 0:
-            psp_array[i] = -1
-    return psp_array
+def signal_transformation(signal):
+    if signal == v[0]:
+        return -1
+    else:
+        return 1
 
 
+def FM_phasing_manipulation(signal, q_, gauss_):
+    return 4 * q_ * (signal_transformation(signal) + gauss_ / (pow(2 * q_, 1 / 2)))
+
+
+def CHM_phasing_manipulation(signal, q_, gauss_):
+    return 2 * q_ * (signal_transformation(signal) + gauss_ / (pow(q_, 1 / 2)))
+
+
+def dB_at_times(x):
+    return pow(10, x / 10)
+
+
+def solver(x):
+    if x > (np.log(start_property[1] / start_property[0])):
+        return 1
+    else:
+        return -1
+
+
+def property_chain(result_chain_):
+    k = len(result_chain_)
+    print(result_chain_)
+    for i in range(0, len(result_chain_)):
+        chain_for_plot.append(solver(result_chain_[i]))
+        if solver(result_chain_[i]) == chain[i]:
+            k = k - 1
+    return k / len(result_chain_)
+
+
+Q = [-6, -3, 0, 3, 6]
+chain_for_plot = []
+q_times = []
+
+# Генерация цепи Маркова
 chain = generate_chain(N)
+gauss = np.random.uniform(0, 1, len(chain))
+
+# Перевод dB в разы
+for q in Q:
+    q_times.append(dB_at_times(q))
 
 
-def D(m1, m2):
-    return m1 - m2
+# ЧМ Модуляция
+print('ЧМ Модуляция: ')
+chm_modul_result = []
+for q in q_times:
+    result_chain = []
+    for i in range(0, len(chain)):
+        result_chain.append(CHM_phasing_manipulation(chain[i], q, gauss[i]))
+    #chain_for_plot = result_chain
+    chm_modul_result.append(property_chain(result_chain))
+print(chm_modul_result)
+
+# ФМ Модуляция
+print('ФМ Модуляция: ')
+fm_modul_result = []
+for q in q_times:
+    result_chain = []
+    print(q)
+    for i in range(0, len(chain)):
+        result_chain.append(FM_phasing_manipulation(chain[i], q, gauss[i]))
+
+    fm_modul_result.append(property_chain(result_chain))
+print(fm_modul_result)
 
 
-def FM_phasing_manipulation(signal, q, gauss):
-    return 4 * q * (signal_transformation(signal) + np.random.uniform(0, 1, 1) / (pow(2 * q, 1 / 2)))
+def draw_plot():
+    # График первых 100 элементов информационной последовательности
+    plt.plot(chain[:100])
+    plt.show()
 
+    # График первых 100 элементов последовательности на выходе решающего устройства приемника.
+    plt.plot(chain_for_plot[:100])
+    plt.show()
 
-chain = normal_form(chain)
-result_chain = []
-for s in chain:
-    result_chain.append(phasing_manipulation(s))
+    # График зависимости вероятности ошибки распознавания ЧМ-сигналов
+    plt.plot(Q, chm_modul_result)
+    plt.show()
 
-print(result_chain)
+    # График зависимости вероятности ошибки распознавания ФМ-сигналов
+    plt.plot(Q, fm_modul_result)
+    plt.show()
+#draw_plot()
