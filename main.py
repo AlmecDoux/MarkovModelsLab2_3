@@ -2,8 +2,8 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 
-N = 10 ** 2
-start_property = [0.6, 0.4]
+N = 10 ** 6
+start_property = [0.5, 0.5]
 mtrx = np.array([[0.6, 0.4], [0.2, 0.8]])
 v = [-1, 1]
 
@@ -33,11 +33,11 @@ def signal_transformation(signal):
 
 
 def FM_phasing_manipulation(signal, q_, gauss_):
-    return 4 * q_ * (signal_transformation(signal) + gauss_ / (pow(2 * q_, 1 / 2)))
+    return 4 * q_ * (signal_transformation(signal) + gauss_ / (math.sqrt(2 * q_)))
 
 
 def CHM_phasing_manipulation(signal, q_, gauss_):
-    return 2 * q_ * (signal_transformation(signal) + gauss_ / (pow(q_, 1 / 2)))
+    return 2 * q_ * (signal_transformation(signal) + gauss_ / (math.sqrt(q_)))
 
 
 def dB_at_times(x):
@@ -46,17 +46,18 @@ def dB_at_times(x):
 
 def solver(x):
     if x > (np.log(start_property[1] / start_property[0])):
-        return v[0]
+        return -1
     else:
-        return v[1]
+        return 1
 
 
 def property_chain(result_chain_):
-    k = len(result_chain_)
+    k = 0
     for i in range(0, len(result_chain_)):
         chain_for_plot.append(solver(result_chain_[i]))
-        if solver(result_chain_[i]) == chain[i]:
-            k = k - 1
+        if solver(result_chain_[i]) != chain[i]:
+            k = k + 1
+        chain_for_plot.append(solver(result_chain_[i]))
     return k / len(result_chain_)
 
 
@@ -66,12 +67,11 @@ q_times = []
 
 # Генерация цепи Маркова
 chain = generate_chain(N)
-gauss = np.random.uniform(0, 1, len(chain))
+gauss = np.random.standard_normal(len(chain))
 
 # Перевод dB в разы
 for q in Q:
     q_times.append(dB_at_times(q))
-
 
 # ЧМ Модуляция
 print('ЧМ Модуляция: ')
@@ -80,7 +80,6 @@ for q in q_times:
     result_chain = []
     for i in range(0, len(chain)):
         result_chain.append(CHM_phasing_manipulation(chain[i], q, gauss[i]))
-    #chain_for_plot = result_chain
 
     chm_modul_result.append(property_chain(result_chain))
 print(chm_modul_result)
@@ -90,7 +89,6 @@ print('ФМ Модуляция: ')
 fm_modul_result = []
 for q in q_times:
     result_chain = []
-    print(q)
     for i in range(0, len(chain)):
         result_chain.append(FM_phasing_manipulation(chain[i], q, gauss[i]))
 
@@ -114,4 +112,6 @@ def draw_plot():
     # График зависимости вероятности ошибки распознавания ФМ-сигналов
     plt.plot(Q, fm_modul_result)
     plt.show()
-#draw_plot()
+
+
+draw_plot()
